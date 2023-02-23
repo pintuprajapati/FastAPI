@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, status, Response, HTTPException
-from schemas import Blog
+from schemas import Blog, UpdateBlog
 import models
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
@@ -58,7 +58,7 @@ def show_blog(id, response: Response, db: Session = Depends(get_db)):
     return blog
 
 # Delete Blog
-@app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT)
+@app.delete('/blog/{id}')
 def destroy(id, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
 
@@ -68,6 +68,24 @@ def destroy(id, db: Session = Depends(get_db)):
     
     db.query(models.Blog).filter(models.Blog.id==id).delete(synchronize_session=False)
     db.commit()
-    content={'success': True, 'message': f"Blog with id {id} deleted"}
 
+    content={'success': True, 'message': f"Blog with id {id} deleted"}
     return JSONResponse(status_code=status.HTTP_200_OK, content=content)
+
+# Update Blog
+@app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED)
+def update(id, request_body: UpdateBlog, db: Session = Depends(get_db)):
+    blog = db.query(models.Blog).filter(models.Blog.id == id).first()
+
+    if not blog:
+        content={'success': False, 'message': f"Blog with id {id} don't exists"}
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=content)
+    
+    # exclude_none=True will only update the field which you want to update
+    # If you don't want to upadte `body` then only pass only `title` and `body` field will stay as it is
+    db.query(models.Blog).filter(models.Blog.id == id).update(request_body.dict(exclude_none=True))
+    db.commit()
+
+    content={'success': True, 'message': f"Blog with id {id} Updated"}
+    return JSONResponse(status_code=status.HTTP_200_OK, content=content)
+
