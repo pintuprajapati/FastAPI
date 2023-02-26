@@ -8,4 +8,3 @@ class Blog(BaseModel):
 class UpdateBlog(BaseModel):
     title: Optional[str]
     body: Optional[str]
-

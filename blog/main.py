@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, status, Response, HTTPException
-from schemas import Blog, UpdateBlog
+import schemas
 import models
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
@@ -20,7 +20,7 @@ def get_db():
 
 # Create Blog
 @app.post('/blog')
-def create(request: Blog, db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
+def create(request: schemas.Blog, db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
     try:
         new_blog = models.Blog(title=request.title, body=request.body)
         db.add(new_blog)
@@ -39,7 +39,7 @@ def all_blog(db: Session = Depends(get_db)):
         return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content=content)
     return blogs
 
-# Get specific ID blog
+# Get a specific ID blog
 @app.get('/blog/{id}', status_code=200)
 def show_blog(id, response: Response, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
@@ -62,8 +62,9 @@ def show_blog(id, response: Response, db: Session = Depends(get_db)):
 def destroy(id, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
 
+    # if blog doesn't exist
     if not blog:
-        content={'success': False, 'message': f"Blog with id {id} don't exists"}
+        content={'success': False, 'message': f"Blog with id {id} does't exist"}
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=content)
     
     db.query(models.Blog).filter(models.Blog.id==id).delete(synchronize_session=False)
@@ -74,15 +75,16 @@ def destroy(id, db: Session = Depends(get_db)):
 
 # Update Blog
 @app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED)
-def update(id, request_body: UpdateBlog, db: Session = Depends(get_db)):
+def update(id, request_body: schemas.UpdateBlog, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
 
+    # If blog doesn't exist
     if not blog:
-        content={'success': False, 'message': f"Blog with id {id} don't exists"}
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=content)
+        content={'success': False, 'message': f"Blog with id {id} doesn't exist"}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, content=content)
     
     # exclude_none=True will only update the field which you want to update
-    # If you don't want to upadte `body` then only pass only `title` and `body` field will stay as it is
+    # If you don't want to upadte `body` then pass only `title` and `body` field will stay as it is
     db.query(models.Blog).filter(models.Blog.id == id).update(request_body.dict(exclude_none=True))
     db.commit()
 
