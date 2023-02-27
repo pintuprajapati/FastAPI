@@ -12,3 +12,11 @@ class Blog(Base):
 
     # Added unique constraint to title field
     __table_args__ = (UniqueConstraint('title', name='uq_blog_title'),)
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    email = Column(String)
+    password = Column(String)

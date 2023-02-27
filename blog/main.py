@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, status, Response, HTTPException
+from typing import List
 import schemas
 import models
 from database import engine, SessionLocal
@@ -31,6 +32,8 @@ def create(request: schemas.Blog, db: Session = Depends(get_db), status_code=sta
         return JSONResponse(status_code=500, content={'success': False, 'message': "Duplicate Value"})
 
 # Get all blogs
+# for python 3.6 and above -> List[Item]
+# for python 3.9 and above -> list[Item]
 @app.get('/blog')
 def all_blog(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
@@ -40,20 +43,20 @@ def all_blog(db: Session = Depends(get_db)):
     return blogs
 
 # Get a specific ID blog
-@app.get('/blog/{id}', status_code=200)
+@app.get('/blog/{id}', status_code=200, response_model=schemas.ShowBlog)
 def show_blog(id, response: Response, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog:
         # method-1 
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"blog with {id} doesn't exist")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"blog with id {id} doesn't exist")
 
         # method-2
-        # content = {'success': False, 'message': f"blog with {id} doesn't exist"}
+        # content = {'success': False, 'message': f"blog with id {id} doesn't exist"}
         # return JSONResponse(status_code=404, content=content)
         
         # method-3
         # response.status_code = status.HTTP_404_NOT_FOUND
-        # return {'success': False, 'message': f"blog with {id} doesn't exist"}
+        # return {'success': False, 'message': f"blog with id {id} doesn't exist"}
 
     return blog
 
@@ -80,7 +83,7 @@ def update(id, request_body: schemas.UpdateBlog, db: Session = Depends(get_db)):
 
     # If blog doesn't exist
     if not blog:
-        content={'success': False, 'message': f"Blog with id {id} doesn't exist"}
+        content={'success': False, 'message': f"Blog with idid {id} doesn't exist"}
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, content=content)
     
     # exclude_none=True will only update the field which you want to update
@@ -91,3 +94,11 @@ def update(id, request_body: schemas.UpdateBlog, db: Session = Depends(get_db)):
     content={'success': True, 'message': f"Blog with id {id} Updated"}
     return JSONResponse(status_code=status.HTTP_200_OK, content=content)
 
+# Create User
+@app.post('/user')
+def create_user(request: schemas.User, db: Session = Depends(get_db)):
+    new_user = models.User(name=request.name, email=request.email, password=request.password)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user

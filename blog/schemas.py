@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 class Blog(BaseModel):
@@ -8,3 +8,15 @@ class Blog(BaseModel):
 class UpdateBlog(BaseModel):
     title: Optional[str]
     body: Optional[str]
+
+class ShowBlog(BaseModel):   
+    title: str
+    body: str
+    class Config():
+        orm_mode = True
+    
+# For user registration
+class User(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
