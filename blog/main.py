@@ -84,8 +84,8 @@ def update(id, request_body: schemas.UpdateBlog, db: Session = Depends(get_db)):
 
     # If blog doesn't exist
     if not blog:
-        content={'success': False, 'message': f"Blog with idid {id} doesn't exist"}
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, content=content)
+        content={'success': False, 'message': f"Blog with id {id} doesn't exist"}
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=content)
     
     # exclude_none=True will only update the field which you want to update
     # If you don't want to upadte `body` then pass only `title` and `body` field will stay as it is
@@ -96,10 +96,21 @@ def update(id, request_body: schemas.UpdateBlog, db: Session = Depends(get_db)):
     return JSONResponse(status_code=status.HTTP_200_OK, content=content)
 
 # Create User
-@app.post('/user')
+@app.post('/user', response_model=schemas.ShowUser)
 def create_user(request: schemas.User, db: Session = Depends(get_db)):
     new_user = models.User(name=request.name, email=request.email, password=Hash.bcrypt(request.password))
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     return new_user
+
+# Get user, with specific ID
+@app.get('/user/{id}', response_model=schemas.ShowUser)
+def get_user(id:int, db:Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == id).first()
+
+    # if user doesn't exist
+    if not user:
+        content={'success': False, 'message': f"User with id {id} doesn't exist"}
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=content)
+    return user
