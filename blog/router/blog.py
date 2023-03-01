@@ -7,10 +7,13 @@ from sqlalchemy.exc import IntegrityError
 from fastapi.responses import JSONResponse
 import database
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/blog",
+    tags=['blogs']
+)
 
 # Create Blog
-@router.post('/blog', tags=['blogs'])
+@router.post('')
 def create(request: schemas.Blog, db: Session = Depends(database.get_db), status_code=status.HTTP_201_CREATED):
     try:
         new_blog = models.Blog(title=request.title, body=request.body, user_id=1)
@@ -24,7 +27,7 @@ def create(request: schemas.Blog, db: Session = Depends(database.get_db), status
 # Get all blogs
 # for python 3.6 and above -> List[Item]
 # for python 3.9 and above -> list[Item]
-@router.get('/blog', response_model=List[schemas.ShowBlog], tags=['blogs'])
+@router.get('', response_model=List[schemas.ShowBlog])
 def all_blog(db: Session = Depends(database.get_db)):
     blogs = db.query(models.Blog).all()
     if not blogs:
@@ -33,7 +36,7 @@ def all_blog(db: Session = Depends(database.get_db)):
     return blogs
 
 # Get a specific ID blog
-@router.get('/blog/{id}', status_code=200, response_model=schemas.ShowBlog, tags=['blogs'])
+@router.get('/{id}', status_code=200, response_model=schemas.ShowBlog)
 def show_blog(id, response: Response, db: Session = Depends(database.get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog:
@@ -51,7 +54,7 @@ def show_blog(id, response: Response, db: Session = Depends(database.get_db)):
     return blog
 
 # Delete Blog
-@router.delete('/blog/{id}', tags=['blogs'])
+@router.delete('/{id}')
 def destroy(id, db: Session = Depends(database.get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
 
@@ -67,7 +70,7 @@ def destroy(id, db: Session = Depends(database.get_db)):
     return JSONResponse(status_code=status.HTTP_200_OK, content=content)
 
 # Update Blog
-@router.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED, tags=['blogs'])
+@router.put('/{id}', status_code=status.HTTP_202_ACCEPTED)
 def update(id, request_body: schemas.UpdateBlog, db: Session = Depends(database.get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
 
