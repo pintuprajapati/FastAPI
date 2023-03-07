@@ -26,3 +26,8 @@ How to run this API locally:
 ## Output in Swagger UI in Browswer
 - [`http://localhost:8000/docs`](http://localhost:8000/docs)
 - [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs)
+
+## To run the Test Cases
+Official Doc: https://fastapi.tiangolo.com/tutorial/testing/#__tabbed_1_2
+Command to test: `pytest -s`
+the -s flag, which disables output capture and allows the print() statements to display to the console
