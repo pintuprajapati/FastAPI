@@ -17,7 +17,7 @@ logged_in_user = get_authenticated_user()
 
 # Create Blog
 @router.post('')
-def create(request: schemas.Blog, db: Session = Depends(database.get_db), status_code=status.HTTP_201_CREATED):
+def create(request: schemas.Blog, db: Session = Depends(database.get_db), status_code=status.HTTP_201_CREATED, user: schemas.User = logged_in_user):
     return blogRepository.create(request, db)
 
 # Get all blogs
